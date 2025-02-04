@@ -4,6 +4,9 @@ from typing import AsyncGenerator
 from .redis_service import redis_service
 from .llm_service import llm_service
 import logging
+from .postgres_service import postgres_service
+from datetime import datetime
+
 logger = logging.getLogger(__name__)
 
 class ChatService:
@@ -55,5 +58,13 @@ class ChatService:
         # Save updated session
         await redis_service.save_chat_session(chat_session)
         logger.info(f"Saved chat session: {chat_session}")
+
+    async def flush_session_to_postgres(self, session_id: str):
+        chat_session = await redis_service.get_chat_session(session_id)
+        if chat_session:
+            last_request_timestamp = datetime.now().isoformat()
+            flushed_timestamp = datetime.now().isoformat()
+            summary = " ".join([msg.content for msg in chat_session.messages])
+            postgres_service.flush_session(session_id, last_request_timestamp, flushed_timestamp, summary)
 
 chat_service = ChatService()

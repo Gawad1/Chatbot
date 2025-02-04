@@ -1,10 +1,13 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from sse_starlette.sse import EventSourceResponse
 from .chat import ChatRequest
 from .chat_service import chat_service
+from .redis_service import redis_service
+from .postgres_service import postgres_service
 import logging
 import asyncio
 import json
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +39,13 @@ async def chat_endpoint(chat_request: ChatRequest):
                 "event": "error",
                 "data": json.dumps({"error": str(e)})
             }
+        finally:
+            await chat_service.flush_session_to_postgres(chat_request.session_id)
 
     return EventSourceResponse(
         event_generator(), 
         media_type="text/event-stream"
     )
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
