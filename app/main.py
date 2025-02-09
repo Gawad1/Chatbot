@@ -16,6 +16,7 @@ async def chat_endpoint(chat_request: ChatRequest):
     
     async def event_generator():
         try:
+            session_id = None
             async for chunk in chat_service.create_or_continue_chat(chat_request):
                 if chunk:
                     # Capture the session_id from the first yielded message
