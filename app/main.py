@@ -2,12 +2,9 @@ from fastapi import FastAPI
 from sse_starlette.sse import EventSourceResponse
 from .chat import ChatRequest
 from .chat_service import chat_service
-from .redis_service import redis_service
-from .postgres_service import postgres_service
 import logging
 import asyncio
 import json
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +18,9 @@ async def chat_endpoint(chat_request: ChatRequest):
         try:
             async for chunk in chat_service.create_or_continue_chat(chat_request):
                 if chunk:
+                    # Capture the session_id from the first yielded message
+                    if isinstance(chunk, dict) and "session_id" in chunk:
+                        session_id = chunk["session_id"]
                     # Convert chunk to JSON string if it's a dict
                     if isinstance(chunk, dict):
                         data = json.dumps(chunk)
@@ -40,7 +40,7 @@ async def chat_endpoint(chat_request: ChatRequest):
                 "data": json.dumps({"error": str(e)})
             }
         finally:
-            await chat_service.flush_session_to_postgres(chat_request.session_id)
+            await chat_service.flush_session_to_postgres(session_id)
 
     return EventSourceResponse(
         event_generator(), 

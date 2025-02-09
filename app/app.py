@@ -64,7 +64,6 @@ def stream_chat_response(message: str):
                             full_response += chunk
                             # Update the message placeholder with the accumulated response
                             message_placeholder.markdown(full_response)
-                            logger.info(f"Displayed chunk: {chunk}")
                             
                         except Exception as e:
                             logger.error(f"Error processing chunk: {e}")

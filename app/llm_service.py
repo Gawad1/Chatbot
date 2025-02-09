@@ -12,7 +12,6 @@ class LLMService:
         logger.info("LLM Service initialized with OpenAI")
 
     async def generate_stream(self, messages: list, system_prompt: str) -> AsyncGenerator[str, None]:
-        logger.info(f"Generating stream with messages: {messages}, system_prompt: {system_prompt}")
 
         formatted_messages = self._format_messages(messages, system_prompt)
         logger.info(f"Sending formatted messages to OpenAI: {formatted_messages}")

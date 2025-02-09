@@ -34,18 +34,15 @@ class ChatService:
         
         # Save the latest system prompt
         chat_session.system_prompt = system_prompt
-        logger.info(f"Using system prompt: {system_prompt}")
 
         # Add user message
         chat_session.messages.append(
             Message(role="user", content=chat_request.message)
         )
-        logger.info(f"Added user message: {chat_request.message}")
 
         # Get response from LLM
         full_response = ""
         async for chunk in llm_service.generate_stream(chat_session.messages, chat_session.system_prompt):
-            logger.info(f"Received chunk from LLM: {chunk}")
             full_response += chunk  
             yield chunk
 
@@ -53,7 +50,6 @@ class ChatService:
         chat_session.messages.append(
             Message(role="assistant", content=full_response)
         )
-        logger.info(f"Added assistant message: {full_response}")
 
         # Save updated session
         await redis_service.save_chat_session(chat_session)
@@ -64,7 +60,7 @@ class ChatService:
         if chat_session:
             last_request_timestamp = datetime.now().isoformat()
             flushed_timestamp = datetime.now().isoformat()
-            summary = " ".join([msg.content for msg in chat_session.messages])
+            summary = " -- ".join([msg.content for msg in chat_session.messages])
             postgres_service.flush_session(session_id, last_request_timestamp, flushed_timestamp, summary)
 
 chat_service = ChatService()

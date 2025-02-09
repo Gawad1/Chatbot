@@ -16,7 +16,6 @@ class RedisService:
         logger.info("Redis Service initialized")
 
     async def save_chat_session(self, chat_session: ChatSession):
-        logger.info(f"Saving chat session: {chat_session.session_id}")
         try:
             self.redis_client.set(
                 f"chat:{chat_session.session_id}",
@@ -28,14 +27,11 @@ class RedisService:
             logger.error(f"Redis connection error during save: {e}")
 
     async def get_chat_session(self, session_id: str) -> ChatSession:
-        logger.info(f"Getting chat session: {session_id}")
         try:
             data = self.redis_client.get(f"chat:{session_id}")
             if data:
                 chat_session = ChatSession.model_validate_json(data)
-                logger.info(f"Retrieved chat session: {chat_session.session_id}")
                 return chat_session
-            logger.info(f"Chat session not found for id: {session_id}")
             return None
         except ConnectionError as e:
             logger.error(f"Redis connection error during get: {e}")
